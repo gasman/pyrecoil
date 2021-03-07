@@ -13,7 +13,7 @@ void RECOIL_Delete(RECOIL *self);
 /**
  * RECOIL version - major part.
  */
-#define RECOIL_VERSION_MAJOR 5
+#define RECOIL_VERSION_MAJOR 6
 
 /**
  * RECOIL version - minor part.
@@ -23,22 +23,22 @@ void RECOIL_Delete(RECOIL *self);
 /**
  * RECOIL version - micro part.
  */
-#define RECOIL_VERSION_MICRO 1
+#define RECOIL_VERSION_MICRO 0
 
 /**
  * RECOIL version as a string.
  */
-#define RECOIL_VERSION "5.1.1"
+#define RECOIL_VERSION "6.1.0"
 
 /**
  * Years RECOIL was created in.
  */
-#define RECOIL_YEARS "2009-2020"
+#define RECOIL_YEARS "2009-2021"
 
 /**
  * Short credits for RECOIL.
  */
-#define RECOIL_CREDITS "Retro Computer Image Library (C) 2009-2020 Piotr Fusik and Adrian Matoga\n"
+#define RECOIL_CREDITS "Retro Computer Image Library (C) 2009-2021 Piotr Fusik\n"
 
 /**
  * Short license notice.
@@ -47,30 +47,61 @@ void RECOIL_Delete(RECOIL *self);
 #define RECOIL_COPYRIGHT "This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version."
 
 /**
- * Maximum length of a supported input file.
- * You may assume that files longer than this are not supported by RECOIL.
+ * Maximum length of a supported platform palette file.
  */
-#define RECOIL_MAX_CONTENT_LENGTH 6291456
-
-/**
- * Maximum width of a decoded image.
- */
-#define RECOIL_MAX_WIDTH 10000
-
-/**
- * Maximum height of a decoded image.
- */
-#define RECOIL_MAX_HEIGHT 2560
-
-/**
- * Maximum number of pixels in a decoded image.
- */
-#define RECOIL_MAX_PIXELS_LENGTH 2854278
+#define RECOIL_MAX_PLATFORM_PALETTE_CONTENT_LENGTH 32768
 
 /**
  * Maximum length of a string returned by <code>GetPlatform()</code>.
  */
 #define RECOIL_MAX_PLATFORM_LENGTH 21
+
+/**
+ * Selects the PAL/NTSC video standard for applicable platforms.
+ * Resets all platform palettes loaded with <code>SetPlatformPalette</code> to default.
+ * @param self This <code>RECOIL</code>.
+ * @param ntsc <code>true</code> for NTSC, <code>false</code> for PAL
+ */
+void RECOIL_SetNtsc(RECOIL *self, bool ntsc);
+
+/**
+ * Returns <code>true</code> if NTSC video standard is selected.
+ * @param self This <code>RECOIL</code>.
+ */
+bool RECOIL_IsNtsc(const RECOIL *self);
+
+/**
+ * Sets a custom platform palette.
+ * 
+ * <ul>
+ * <li>768-byte <code>ACT</code>/<code>PAL</code> file with an Atari 8-bit palette</li>
+ * <li><code>VPL</code> VICE Palette file with a C64 palette</li>
+ * </ul>
+ * <p>Returns <code>true</code> on success.
+ * @param self This <code>RECOIL</code>.
+ * @param filename Name of the file to decode. Only the extension is processed, for format recognition.
+ * @param content File contents.
+ * @param contentLength File length.
+ */
+bool RECOIL_SetPlatformPalette(RECOIL *self, const char *filename, uint8_t const *content, int contentLength);
+
+/**
+ * Checks whether the filename extension is supported by RECOIL.
+ * <code>true</code> doesn't necessarily mean that the file contents is valid for RECOIL.
+ * With this function you can avoid reading files which are known to be unsupported.
+ * @param filename Name of the file to be checked.
+ */
+bool RECOIL_IsOurFile(const char *filename);
+
+/**
+ * Decodes a picture file to an RGB bitmap.
+ * Returns <code>true</code> on success.
+ * @param self This <code>RECOIL</code>.
+ * @param filename Name of the file to decode. Only the extension is processed, for format recognition.
+ * @param content File contents.
+ * @param contentLength File length.
+ */
+bool RECOIL_Decode(RECOIL *self, const char *filename, uint8_t const *content, int contentLength);
 
 /**
  * Returns decoded image width.
@@ -110,6 +141,30 @@ int RECOIL_GetOriginalWidth(const RECOIL *self);
 int RECOIL_GetOriginalHeight(const RECOIL *self);
 
 /**
+ * Returns horizontal pixel density per meter or zero if unknown.
+ * @param self This <code>RECOIL</code>.
+ */
+int RECOIL_GetXPixelsPerMeter(const RECOIL *self);
+
+/**
+ * Returns vertical pixel density per meter or zero if unknown.
+ * @param self This <code>RECOIL</code>.
+ */
+int RECOIL_GetYPixelsPerMeter(const RECOIL *self);
+
+/**
+ * Returns horizontal pixel density per inch or zero if unknown.
+ * @param self This <code>RECOIL</code>.
+ */
+float RECOIL_GetXPixelsPerInch(const RECOIL *self);
+
+/**
+ * Returns vertical pixel density per inch or zero if unknown.
+ * @param self This <code>RECOIL</code>.
+ */
+float RECOIL_GetYPixelsPerInch(const RECOIL *self);
+
+/**
  * Returns the number of alternating frames the pictures is composed of.
  * 
  * <ul>
@@ -120,32 +175,6 @@ int RECOIL_GetOriginalHeight(const RECOIL *self);
  * @param self This <code>RECOIL</code>.
  */
 int RECOIL_GetFrames(const RECOIL *self);
-
-/**
- * Sets Atari 8-bit palette.
- * @param self This <code>RECOIL</code>.
- * @param content 768-byte array (256 times RGB).
- */
-void RECOIL_SetAtari8Palette(RECOIL *self, uint8_t const *content);
-
-/**
- * Checks whether the filename extension is supported by RECOIL.
- * <code>true</code> doesn't necessarily mean that the file contents is valid for RECOIL.
- * This function is meant to avoid reading files which are known to be unsupported.
- * Another criterium is the maximum file size, <code>MaxContentLength</code>.
- * @param filename Name of the file to be checked.
- */
-bool RECOIL_IsOurFile(const char *filename);
-
-/**
- * Decodes a picture file to an RGB bitmap.
- * Returns <code>true</code> on success.
- * @param self This <code>RECOIL</code>.
- * @param filename Name of the file to decode. Only the extension is processed, for format recognition.
- * @param content File contents.
- * @param contentLength File length.
- */
-bool RECOIL_Decode(RECOIL *self, const char *filename, uint8_t const *content, int contentLength);
 
 /**
  * Returns number of unique colors in the decoded picture.
@@ -160,9 +189,16 @@ int RECOIL_GetColors(RECOIL *self);
  * Returns <code>null</code> if conversion fails,
  * because there are more than 256 colors.
  * @param self This <code>RECOIL</code>.
- * @param indexes Out: palette-indexed picture.
  */
-int const *RECOIL_ToPalette(RECOIL *self, uint8_t *indexes);
+int const *RECOIL_ToPalette(RECOIL *self);
+
+/**
+ * Returns the palette-indexed picture,
+ * as a bitmap of <code>GetHeight()</code> rows of <code>GetWidth()</code> pixels.
+ * Call after <code>ToPalette()</code> returns non-null.
+ * @param self This <code>RECOIL</code>.
+ */
+uint8_t const *RECOIL_GetIndexes(const RECOIL *self);
 
 #ifdef __cplusplus
 }
